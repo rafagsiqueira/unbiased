@@ -1,4 +1,4 @@
-import type { ArticlesResponse, FeedsResponse, ScoreResponse } from '../../shared/types';
+import type { ArticlesResponse, FeedsResponse } from '../../shared/types';
 
 const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '';
 
@@ -10,12 +10,19 @@ async function json<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const fetchFeeds = () => json<FeedsResponse>('/api/feeds');
 
-export const fetchArticles = (market: { country: string; language: string }) =>
-  json<ArticlesResponse>(`/api/articles?${new URLSearchParams(market)}`);
+export interface ArticleQuery {
+  country: string;
+  language: string;
+  category?: string;
+  /** Restrict to these feed ids (omit for all). */
+  feeds?: string[];
+  cursor?: string | null;
+}
 
-export const scoreArticles = (articles: { id: string; title: string; summary: string }[]) =>
-  json<ScoreResponse>('/api/score', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ articles }),
-  });
+export const fetchArticles = (q: ArticleQuery) => {
+  const params = new URLSearchParams({ country: q.country, language: q.language });
+  if (q.category) params.set('category', q.category);
+  if (q.feeds) params.set('feed', q.feeds.join(','));
+  if (q.cursor) params.set('cursor', q.cursor);
+  return json<ArticlesResponse>(`/api/articles?${params}`);
+};

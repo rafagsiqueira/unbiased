@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 import { CRITERIA, buildRequest, parseResponse, scoreArticle, toBiasScore } from '../api/_lib/jev';
-import { scoreMany } from '../api/_lib/scoring';
 
 describe('jev', () => {
   it('maps level positions onto -100…+100', () => {
@@ -24,15 +23,5 @@ describe('jev', () => {
     const r = await scoreArticle({ title: 'a', summary: '' }, { apiKey: 'k' }, f as unknown as typeof fetch);
     expect(r.value).toBe(0);
     expect(f.mock.calls[0][1].headers.authorization).toBe('Bearer k');
-  });
-  it('returns null scores without an API key and caches successes', async () => {
-    delete process.env.TYPESAFE_API_KEY;
-    expect(await scoreMany([{ id: 'x', title: 't', summary: '' }])).toEqual({ x: null });
-    process.env.TYPESAFE_API_KEY = 'k';
-    const score = vi.fn().mockResolvedValue({ value: 10, confidence: 1 });
-    const item = { id: 'y', title: 't', summary: '' };
-    await scoreMany([item], 2, score);
-    await scoreMany([item], 2, score);
-    expect(score).toHaveBeenCalledTimes(1);
   });
 });

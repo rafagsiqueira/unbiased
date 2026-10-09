@@ -1,17 +1,15 @@
 import { IonCard, IonCardContent, IonChip, IonLabel } from '@ionic/react';
 import { Browser } from '@capacitor/browser';
 import { useTranslation } from 'react-i18next';
-import type { Article, BiasScore } from '../../shared/types';
+import type { StoredArticle } from '../../shared/types';
 import { timeAgo } from '../lib/format';
 import BiasScale from './BiasScale';
 
 interface Props {
-  article: Article;
-  bias: BiasScore | null | undefined;
-  pending: boolean;
+  article: StoredArticle;
 }
 
-export default function ArticleCard({ article, bias, pending }: Props) {
+export default function ArticleCard({ article }: Props) {
   const { t } = useTranslation();
   return (
     <IonCard>
@@ -39,7 +37,7 @@ export default function ArticleCard({ article, bias, pending }: Props) {
           <h2 style={{ fontSize: '1.05rem', lineHeight: 1.3, margin: '0 0 6px' }}>{article.title}</h2>
           {article.summary && <p style={{ margin: 0, fontSize: '0.9rem' }}>{article.summary}</p>}
         </a>
-        <BiasScale bias={bias} pending={pending} />
+        <BiasScale bias={article.bias} />
       </IonCardContent>
     </IonCard>
   );

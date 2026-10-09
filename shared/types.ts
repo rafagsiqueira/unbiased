@@ -47,15 +47,10 @@ export interface FeedsResponse {
   countries: { country: string; language: string }[];
 }
 
+export type StoredArticle = Article & { bias: BiasScore | null };
+
 export interface ArticlesResponse {
-  articles: (Article & { bias: BiasScore | null })[];
-  failedFeeds: string[];
-}
-
-export interface ScoreRequest {
-  articles: { id: string; title: string; summary: string }[];
-}
-
-export interface ScoreResponse {
-  scores: Record<string, BiasScore | null>;
+  articles: StoredArticle[];
+  /** Pass back as `cursor` to fetch the next (older) page; null when exhausted. */
+  nextCursor: string | null;
 }

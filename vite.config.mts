@@ -8,12 +8,31 @@ import { defineConfig } from 'vitest/config';
 function devApi(): Plugin {
   return {
     name: 'dev-api',
+    apply: () => !process.env.VITEST,
     configureServer(server) {
       Object.assign(process.env, loadEnv('development', process.cwd(), ''));
-      const routes = new Set(readdirSync('api').filter((f) => f.endsWith('.ts')).map((f) => f.slice(0, -3)));
+      const routes = new Set(readdirSync('api', { recursive: true, encoding: 'utf8' })
+        .filter((f) => f.endsWith('.ts') && !f.startsWith('_lib'))
+        .map((f) => f.slice(0, -3)));
+
+      // Local dev without a database: in-process Postgres, ingesting now and every 10 minutes.
+      if (!process.env.DATABASE_URL) {
+        void (async () => {
+          const { PGlite } = await import('@electric-sql/pglite');
+          const { PostgresStore, setStore } = await server.ssrLoadModule('/api/_lib/store.ts');
+          const { ingest } = await server.ssrLoadModule('/api/_lib/pipeline.ts');
+          const db = new PGlite();
+          const store = new PostgresStore(async (text: string, params?: unknown[]) => (await db.query(text, params)).rows);
+          await store.init();
+          setStore(store);
+          const run = () => ingest({ store }).then((r: unknown) => console.log('[dev ingest]', r), console.error);
+          void run();
+          setInterval(run, 10 * 60 * 1000).unref();
+        })();
+      }
       server.middlewares.use(async (req: IncomingMessage, res: ServerResponse, next) => {
         const url = new URL(req.url ?? '/', 'http://localhost');
-        const route = url.pathname.match(/^\/api\/([\w-]+)$/)?.[1];
+        const route = url.pathname.match(/^\/api\/([\w/-]+)$/)?.[1];
         if (!route || !routes.has(route)) return next();
         try {
           const mod = await server.ssrLoadModule(`/api/${route}.ts`);

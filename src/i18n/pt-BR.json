@@ -17,8 +17,7 @@
     "left": "Esquerda",
     "center": "Centro",
     "right": "Direita",
-    "pending": "Analisando…",
-    "unavailable": "Sem análise",
+    "pending": "Análise pendente",
     "label": "Posição política: {{value}} (de −100 esquerda a +100 direita)",
     "confidence": "Confiança {{percent}}%"
   },
@@ -26,7 +25,6 @@
     "empty": "Nenhuma notícia encontrada para estes filtros.",
     "error": "Não foi possível carregar as notícias.",
     "retry": "Tentar novamente",
-    "partial": "Algumas fontes não responderam: {{feeds}}",
     "open": "Abrir matéria"
   },
   "settings": {
