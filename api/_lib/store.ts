@@ -139,8 +139,8 @@ let instance: ArticleStore | undefined;
 /** Production store: Postgres via DATABASE_URL (Neon). */
 export async function getStore(): Promise<ArticleStore> {
   if (instance) return instance;
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error('DATABASE_URL is not set');
+  const url = process.env.DATABASE_URL ?? process.env.NEON_DATABASE_URL;
+  if (!url) throw new Error('DATABASE_URL (or NEON_DATABASE_URL) is not set');
   const sql = neon(url);
   const store = new PostgresStore((text, params) => sql.query(text, params ?? []) as Promise<Record<string, unknown>[]>);
   await store.init();

@@ -1,5 +1,5 @@
-import { ingest } from '../_lib/pipeline';
-import { getStore } from '../_lib/store';
+import { ingest } from '../_lib/pipeline.js';
+import { getStore } from '../_lib/store.js';
 
 /**
  * Invoked by Vercel Cron (see vercel.json). Vercel sends `Authorization: Bearer $CRON_SECRET`.
