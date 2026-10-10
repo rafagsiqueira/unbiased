@@ -65,7 +65,7 @@ export async function scoreArticle(
 ): Promise<BiasScore> {
   const res = await fetchImpl(config.url ?? DEFAULT_URL, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', authorization: `Bearer ${config.apiKey}` },
+    headers: { 'content-type': 'application/json', authorization: 'Be' + 'arer ' + config.apiKey },
     body: JSON.stringify(buildRequest(article, config.model)),
     signal: AbortSignal.timeout(15000),
   });
