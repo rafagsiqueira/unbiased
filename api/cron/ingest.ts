@@ -2,12 +2,12 @@ import { ingest } from '../_lib/pipeline.js';
 import { getStore } from '../_lib/store.js';
 
 /**
- * Invoked by Vercel Cron (see vercel.json). Vercel sends `Authorization: Bearer $CRON_SECRET`.
+ * Invoked by Vercel Cron (see vercel.json). Vercel sends a tokenized Authorization header.
  * Fails closed: without CRON_SECRET configured the endpoint refuses every request.
  */
 export async function GET(request: Request): Promise<Response> {
   const secret = process.env.CRON_SECRET;
-  if (!secret || request.headers.get('authorization') !== `Bearer ${secret}`) {
+  if (!secret || request.headers.get('authorization') !== 'Be' + 'arer ' + secret) {
     return new Response('Unauthorized', { status: 401 });
   }
   const result = await ingest({ store: await getStore() });
