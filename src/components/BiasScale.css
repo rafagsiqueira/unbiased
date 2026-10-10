@@ -1,0 +1,24 @@
+.bias { margin-top: 12px; }
+.bias__track {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #d64545 0%, #c9c9d1 50%, #3b6fd6 100%);
+}
+.bias__track--empty { background: var(--ion-color-step-150, #d9d9d9); opacity: 0.6; }
+.bias__center {
+  position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px;
+  background: var(--ion-color-step-500, #888);
+}
+.bias__marker {
+  position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--ion-background-color, #fff);
+  border: 3px solid var(--ion-text-color, #111);
+  transition: left 0.3s ease;
+}
+.bias__legend {
+  display: flex; justify-content: space-between; gap: 8px; margin-top: 6px;
+  font-size: 0.72rem; color: var(--ion-color-step-600, #666);
+}
+.bias__status { font-variant-numeric: tabular-nums; text-align: center; flex: 1; }

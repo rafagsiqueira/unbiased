@@ -1,0 +1,38 @@
+{
+  "app": { "title": "Unbiased", "subtitle": "Notícias na escala política" },
+  "categories": {
+    "all": "Todas",
+    "politics": "Política",
+    "world": "Mundo",
+    "economy": "Economia",
+    "general": "Geral",
+    "opinion": "Opinião",
+    "sports": "Esportes",
+    "tech": "Tecnologia",
+    "culture": "Cultura"
+  },
+  "countries": { "BR": "Brasil" },
+  "languages": { "pt-BR": "Português (Brasil)" },
+  "bias": {
+    "left": "Esquerda",
+    "center": "Centro",
+    "right": "Direita",
+    "pending": "Análise pendente",
+    "label": "Posição política: {{value}} (de −100 esquerda a +100 direita)",
+    "confidence": "Confiança {{percent}}%"
+  },
+  "timeline": {
+    "empty": "Nenhuma notícia encontrada para estes filtros.",
+    "error": "Não foi possível carregar as notícias.",
+    "retry": "Tentar novamente",
+    "open": "Abrir matéria"
+  },
+  "settings": {
+    "title": "Configurações",
+    "open": "Abrir configurações",
+    "close": "Fechar",
+    "market": "País e idioma",
+    "outlets": "Fontes"
+  },
+  "time": { "now": "agora" }
+}
