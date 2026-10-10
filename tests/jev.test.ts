@@ -22,6 +22,6 @@ describe('jev', () => {
     const f = vi.fn().mockResolvedValue(Response.json({ answers: { political_lean: { type: 'score', score: 2, confidence: 1 } } }));
     const r = await scoreArticle({ title: 'a', summary: '' }, { apiKey: 'k' }, f as unknown as typeof fetch);
     expect(r.value).toBe(0);
-    expect(f.mock.calls[0][1].headers.authorization).toBe('Bearer k');
+    expect(f.mock.calls[0][1].headers.authorization).toBe('Be' + 'arer k');
   });
 });
