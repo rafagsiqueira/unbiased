@@ -1,4 +1,7 @@
 import { createHash } from 'node:crypto';
+import { JSDOM } from 'jsdom';
+import { Readability } from '@mozilla/readability';
+import createDOMPurify from 'dompurify';
 import Parser from 'rss-parser';
 import type { Article, Feed } from '../../shared/types';
 
@@ -26,6 +29,35 @@ export function truncate(text: string, max: number): string {
 
 export function articleId(link: string): string {
   return createHash('sha1').update(link).digest('hex').slice(0, 16);
+}
+
+export async function extractArticleText(html: string, url: string): Promise<string> {
+  const dom = new JSDOM(html, { url });
+  const sanitizer = createDOMPurify(dom.window as unknown as Window & typeof globalThis);
+  const cleanHtml = sanitizer.sanitize(html, {
+    USE_PROFILES: { html: true },
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'title'],
+  });
+  const article = new Readability(new JSDOM(cleanHtml, { url }).window.document).parse();
+  const text = article?.textContent ?? article?.excerpt ?? '';
+  const normalised = stripHtml(text).replace(/\s+/g, ' ').trim();
+  return normalised ? truncate(normalised, 1200) : '';
+}
+
+export async function fetchArticleSummary(link: string, fallback: string, fetchImpl: typeof fetch = fetch): Promise<string> {
+  try {
+    const res = await fetchImpl(link, {
+      headers: { 'user-agent': USER_AGENT, accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' },
+      signal: AbortSignal.timeout(12000),
+      redirect: 'follow',
+    });
+    if (!res.ok) return fallback;
+    const html = await res.text();
+    const extracted = await extractArticleText(html, link);
+    return extracted || fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 export async function parseFeedXml(xml: string, feed: Feed): Promise<Article[]> {
