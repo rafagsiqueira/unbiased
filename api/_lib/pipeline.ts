@@ -1,7 +1,7 @@
 import type { Article, BiasScore, Feed } from '../../shared/types';
-import { FEEDS } from './feeds';
-import { scoreArticle } from './jev';
-import { fetchFeed } from './rss';
+import { FEEDS } from './feeds.js';
+import { scoreArticle } from './jev.js';
+import { fetchFeed } from './rss.js';
 import type { ArticleStore } from './store';
 
 export interface IngestDeps {

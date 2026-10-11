@@ -1,5 +1,5 @@
 import type { ArticlesResponse } from '../shared/types';
-import { getStore } from './_lib/store';
+import { getStore } from './_lib/store.js';
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
