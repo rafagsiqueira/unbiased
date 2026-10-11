@@ -20,7 +20,7 @@ App ──▶ GET /api/articles?country&language[&category][&feed][&cursor] ─�
 | Path | Purpose |
 | --- | --- |
 | `api/_lib/feeds.ts` | Feed registry: outlet, URL, country, language, category. **Add feeds here.** |
-| `api/_lib/jev.ts` | Scoring prompt (question + 5 levels), request builder, response → -100…+100 mapping |
+| `api/_lib/jev.ts` | Scoring prompt (question + 9 levels), request builder, response → -100…+100 mapping |
 | `api/_lib/pipeline.ts` | Ingestion: fetch → insert new → score (budgeted, retried ≤3×) → prune (30 days) |
 | `api/_lib/store.ts` | Postgres store + schema (created automatically); Neon in prod, PGlite in dev/tests |
 | `api/cron/ingest.ts` | Cron entrypoint, requires `Authorization: Bearer $CRON_SECRET` (fails closed) |
@@ -62,7 +62,7 @@ Native builds need `VITE_API_BASE`, since `/api` isn't same-origin there.
 ## Scoring notes
 
 The model sees only the article title + summary (not the outlet name) and one Score
-question over 5 described levels (far left → far right). Its 0–4 score maps linearly to
+question over 9 described levels (far left → far right). Its 0–8 score maps linearly to
 -100…+100; the model's confidence is stored next to the value. Each run scores at most 60
 unscored articles (newest first); failures are retried on later runs, up to 3 attempts.
 Tune the prompt in `api/_lib/jev.ts` and check it against articles with known leanings.
