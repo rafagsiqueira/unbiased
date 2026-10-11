@@ -67,4 +67,4 @@ question over 5 described levels (far left → far right). Its 0–4 score maps 
 unscored articles (newest first); failures are retried on later runs, up to 3 attempts.
 Tune the prompt in `api/_lib/jev.ts` and check it against articles with known leanings.
 Auth is sent as `Authorization: Bearer <key>` (assumed; confirm against the API reference).
-Changing the prompt does not re-score stored articles; clear `bias_value` in the table to do that.
+Increment `SCORE_MODEL` when the scoring prompt or logic changes to re-score existing articles.

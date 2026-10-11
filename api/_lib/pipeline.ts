@@ -27,11 +27,22 @@ export interface IngestResult {
   scoringSkipped: boolean;
 }
 
+function getScoreModelVersion(): number {
+  const configured = process.env.SCORE_MODEL;
+  if (configured === undefined || configured === '') return 1;
+  const version = Number(configured);
+  if (!Number.isSafeInteger(version) || version < 1) {
+    throw new Error('SCORE_MODEL must be a positive integer');
+  }
+  return version;
+}
+
 export async function ingest(deps: IngestDeps): Promise<IngestResult> {
   const { store } = deps;
   const feeds = deps.feeds ?? FEEDS;
   const load = deps.fetchFeed ?? ((f: Feed) => fetchFeed(f));
   const apiKey = process.env.TYPESAFE_API_KEY;
+  const scoreModel = getScoreModelVersion();
   const score =
     deps.score ??
     (apiKey
@@ -58,11 +69,11 @@ export async function ingest(deps: IngestDeps): Promise<IngestResult> {
   let scored = 0;
   let scoreFailures = 0;
   if (score) {
-    const queue = await store.unscored(deps.scoreBudget ?? 60, deps.maxAttempts ?? 3);
+    const queue = await store.unscored(deps.scoreBudget ?? 60, deps.maxAttempts ?? 3, scoreModel);
     const worker = async () => {
       for (let a = queue.shift(); a; a = queue.shift()) {
         try {
-          await store.saveScore(a.id, await score(a));
+          await store.saveScore(a.id, await score(a), scoreModel);
           scored++;
         } catch (err) {
           console.error(`scoring failed for ${a.id}:`, err);
