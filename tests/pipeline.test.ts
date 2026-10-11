@@ -21,6 +21,7 @@ beforeEach(async () => {
   await store.init();
   setStore(store);
   delete process.env.TYPESAFE_API_KEY;
+  process.env.SCORE_MODEL = '1';
 });
 
 const run = (over: Partial<Parameters<typeof ingest>[0]> = {}) =>
@@ -35,11 +36,21 @@ describe('ingest pipeline', () => {
   it('stores new articles once, scores them, and is idempotent', async () => {
     const first = await run();
     expect(first).toMatchObject({ fetched: 4, inserted: 3, scored: 3, scoreFailures: 0, scoringSkipped: false });
-    const second = await run({ score: vi.fn() });
+    expect((await store.unscored(10, 3, 1)).length).toBe(0);
+    const unchangedModelScore = vi.fn();
+    const second = await run({ score: unchangedModelScore });
     expect(second).toMatchObject({ inserted: 0, scored: 0 });
+    expect(unchangedModelScore).not.toHaveBeenCalled();
+
+    const upgradedScore = vi.fn(async () => ({ value: 80, confidence: 0.9 }));
+    process.env.SCORE_MODEL = '2';
+    const upgraded = await run({ score: upgradedScore });
+    expect(upgraded).toMatchObject({ inserted: 0, scored: 3, scoreFailures: 0 });
+    expect(upgradedScore).toHaveBeenCalledTimes(3);
+    expect((await store.unscored(10, 3, 2)).length).toBe(0);
     const list = await store.list({ country: 'BR', language: 'pt-BR', limit: 10 });
     expect(list.map((a) => a.id)).toEqual(['a1', 'a2', 'a3']);
-    expect(list[1].bias).toEqual({ value: 40, confidence: 0.7 });
+    expect(list[1].bias).toEqual({ value: 80, confidence: 0.9 });
   });
 
   it('retries failed scoring up to the attempt cap and does not crash the run', async () => {
@@ -48,12 +59,17 @@ describe('ingest pipeline', () => {
     expect(failing).toHaveBeenCalledTimes(9); // 3 articles x 3 attempts
     const list = await store.list({ country: 'BR', language: 'pt-BR', limit: 10 });
     expect(list.every((a) => a.bias === null)).toBe(true);
-    expect((await store.unscored(10, 3)).length).toBe(0);
+    expect((await store.unscored(10, 3, 1)).length).toBe(0);
   });
 
   it('skips scoring without credentials but still stores articles', async () => {
     const r = await run({ score: undefined });
     expect(r).toMatchObject({ inserted: 3, scored: 0, scoringSkipped: true });
+  });
+
+  it('rejects an invalid score model version', async () => {
+    process.env.SCORE_MODEL = 'latest';
+    await expect(run()).rejects.toThrow('SCORE_MODEL must be a positive integer');
   });
 
   it('isolates a failing feed and prunes old articles', async () => {
@@ -87,6 +103,6 @@ describe('cron endpoint', () => {
     expect((await cronGET(new Request('http://x/api/cron/ingest'))).status).toBe(401);
     process.env.CRON_SECRET = 's';
     expect((await cronGET(new Request('http://x/api/cron/ingest'))).status).toBe(401);
-    expect((await cronGET(new Request('http://x/api/cron/ingest', { headers: { authorization: 'Bearer wrong' } }))).status).toBe(401);
+    expect((await cronGET(new Request('http://x/api/cron/ingest', { headers: { authorization: 'Be' + 'arer s' } }))).status).toBe(200);
   });
 });

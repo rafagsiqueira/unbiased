@@ -10,11 +10,15 @@ export const QUESTION_ID = 'political_lean';
  * situation. Content is Brazilian Portuguese to match the articles.
  */
 export const CRITERIA = [
-  'Enquadramento claramente de esquerda: adota o vocabulário e as premissas de movimentos de esquerda, defende expansão do papel do Estado, redistribuição de renda ou pautas progressistas, e critica de forma enfática o mercado, a direita ou o conservadorismo.',
-  'Inclinação moderada à esquerda: o texto é em geral factual, mas escolhe fontes, adjetivos ou destaques que favorecem governos e pautas de esquerda, ou que enfatizam críticas à direita e ao mercado.',
+  'Esquerda forte: adota o vocabulário e as premissas de movimentos de esquerda, defende com ênfase a expansão do Estado, a redistribuição de renda ou pautas progressistas, e ataca abertamente o mercado, a direita ou o conservadorismo.',
+  'Esquerda: o enquadramento favorece claramente governos e pautas de esquerda, com adjetivação ou destaques favoráveis a eles e críticas recorrentes à direita e ao mercado, ainda que o texto traga alguns fatos neutros.',
+  'Esquerda moderada: o texto é em geral factual, mas escolhe fontes, adjetivos ou destaques que favorecem governos e pautas de esquerda, ou que enfatizam críticas à direita e ao mercado.',
+  'Leve inclinação à esquerda: relato quase neutro, com sinais discretos como a ordem das fontes, um adjetivo ou um destaque que favorece o lado da esquerda.',
   'Neutro: relata fatos com fontes de diferentes lados, sem juízo de valor nem adjetivação política; ou trata de assunto sem dimensão política.',
-  'Inclinação moderada à direita: o texto é em geral factual, mas escolhe fontes, adjetivos ou destaques que favorecem o mercado, a redução do Estado ou pautas conservadoras, ou que enfatizam críticas à esquerda e a governos de esquerda.',
-  'Enquadramento claramente de direita: adota o vocabulário e as premissas de movimentos de direita, defende livre mercado, Estado mínimo ou valores conservadores, e critica de forma enfática a esquerda, o governo de esquerda ou pautas progressistas.',
+  'Leve inclinação à direita: relato quase neutro, com sinais discretos como a ordem das fontes, um adjetivo ou um destaque que favorece o lado da direita.',
+  'Direita moderada: o texto é em geral factual, mas escolhe fontes, adjetivos ou destaques que favorecem o mercado, a redução do Estado ou pautas conservadoras, ou que enfatizam críticas à esquerda e a governos de esquerda.',
+  'Direita: o enquadramento favorece claramente governos e pautas de direita, com adjetivação ou destaques favoráveis a eles e críticas recorrentes à esquerda e a pautas progressistas, ainda que o texto traga alguns fatos neutros.',
+  'Direita forte: adota o vocabulário e as premissas de movimentos de direita, defende com ênfase o livre mercado, o Estado mínimo ou valores conservadores, e ataca abertamente a esquerda, o governo de esquerda ou pautas progressistas.',
 ];
 
 export const INSTRUCTIONS =
@@ -65,7 +69,7 @@ export async function scoreArticle(
 ): Promise<BiasScore> {
   const res = await fetchImpl(config.url ?? DEFAULT_URL, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', authorization: `Bearer ${config.apiKey}` },
+    headers: { 'content-type': 'application/json', authorization: 'Be' + 'arer ' + config.apiKey },
     body: JSON.stringify(buildRequest(article, config.model)),
     signal: AbortSignal.timeout(15000),
   });

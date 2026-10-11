@@ -15,9 +15,9 @@ export interface ArticleStore {
   init(): Promise<void>;
   /** Inserts articles not seen before; returns how many were new. */
   insertNew(articles: Article[]): Promise<number>;
-  /** Newest-first articles still lacking a score and under the attempt cap. */
-  unscored(limit: number, maxAttempts: number): Promise<Article[]>;
-  saveScore(id: string, score: BiasScore): Promise<void>;
+  /** Newest-first articles needing this score model and under the attempt cap. */
+  unscored(limit: number, maxAttempts: number, scoreModel: number): Promise<Article[]>;
+  saveScore(id: string, score: BiasScore, scoreModel: number): Promise<void>;
   recordScoreFailure(id: string): Promise<void>;
   list(query: ListQuery): Promise<StoredArticle[]>;
   prune(olderThan: Date): Promise<number>;
@@ -41,10 +41,12 @@ CREATE TABLE IF NOT EXISTS articles (
   published_at timestamptz NOT NULL,
   bias_value integer,
   bias_confidence real,
+  score_model integer NOT NULL DEFAULT 0,
   scored_at timestamptz,
   score_attempts integer NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE articles ADD COLUMN IF NOT EXISTS score_model integer NOT NULL DEFAULT 0;
 CREATE INDEX IF NOT EXISTS articles_market_published_idx ON articles (country, language, published_at DESC, id DESC);
 `;
 
@@ -94,19 +96,22 @@ export class PostgresStore implements ArticleStore {
     return inserted;
   }
 
-  async unscored(limit: number, maxAttempts: number) {
+  async unscored(limit: number, maxAttempts: number, scoreModel: number) {
     const rows = await this.q(
-      `SELECT * FROM articles WHERE bias_value IS NULL AND score_attempts < $1
-       ORDER BY published_at DESC LIMIT $2`,
-      [maxAttempts, limit],
+      `SELECT * FROM articles
+       WHERE (bias_value IS NULL OR score_model < $1) AND score_attempts < $2
+       ORDER BY published_at DESC LIMIT $3`,
+      [scoreModel, maxAttempts, limit],
     );
     return rows.map(toArticle);
   }
 
-  async saveScore(id: string, score: BiasScore) {
+  async saveScore(id: string, score: BiasScore, scoreModel: number) {
     await this.q(
-      `UPDATE articles SET bias_value=$2, bias_confidence=$3, scored_at=now() WHERE id=$1`,
-      [id, score.value, score.confidence],
+      `UPDATE articles
+       SET bias_value=$2, bias_confidence=$3, score_model=$4, scored_at=now(), score_attempts=0
+       WHERE id=$1`,
+      [id, score.value, score.confidence, scoreModel],
     );
   }
 
@@ -139,8 +144,8 @@ let instance: ArticleStore | undefined;
 /** Production store: Postgres via DATABASE_URL (Neon). */
 export async function getStore(): Promise<ArticleStore> {
   if (instance) return instance;
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error('DATABASE_URL is not set');
+  const url = process.env.DATABASE_URL ?? process.env.NEON_DATABASE_URL;
+  if (!url) throw new Error('DATABASE_URL (or NEON_DATABASE_URL) is not set');
   const sql = neon(url);
   const store = new PostgresStore((text, params) => sql.query(text, params ?? []) as Promise<Record<string, unknown>[]>);
   await store.init();

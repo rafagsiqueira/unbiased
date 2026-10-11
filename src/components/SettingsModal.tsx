@@ -4,7 +4,7 @@ import {
 } from '@ionic/react';
 import { useTranslation } from 'react-i18next';
 import type { FeedsResponse } from '../../shared/types';
-import type { Prefs } from '../lib/prefs';
+import { DEFAULT_COLUMNS, NEWS_COLUMN_GROUPS, type ColumnId, type Prefs } from '../lib/prefs';
 
 interface Props {
   open: boolean;
@@ -44,6 +44,22 @@ export default function SettingsModal({ open, catalog, prefs, onChange, onClose 
                 <IonSelectOption key={`${c.country}:${c.language}`} value={`${c.country}:${c.language}`}>
                   {t(`countries.${c.country}`, c.country)} · {t(`languages.${c.language}`, c.language)}
                 </IonSelectOption>
+              ))}
+            </IonSelect>
+          </IonItem>
+          <IonItem>
+            <IonSelect
+              label={t('settings.columns')}
+              value={prefs.columns}
+              multiple
+              onIonChange={(e) => {
+                const selected = Array.isArray(e.detail.value) ? e.detail.value : [e.detail.value];
+                const next = selected.filter((column): column is ColumnId => typeof column === 'string' && Object.prototype.hasOwnProperty.call(NEWS_COLUMN_GROUPS, column));
+                onChange({ ...prefs, columns: next.length ? next : [...DEFAULT_COLUMNS] });
+              }}
+            >
+              {(Object.keys(NEWS_COLUMN_GROUPS) as ColumnId[]).map((column) => (
+                <IonSelectOption key={column} value={column}>{t(`columns.${column}`)}</IonSelectOption>
               ))}
             </IonSelect>
           </IonItem>

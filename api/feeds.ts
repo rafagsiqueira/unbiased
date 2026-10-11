@@ -1,5 +1,5 @@
 import type { FeedsResponse } from '../shared/types';
-import { CATEGORIES, FEEDS, listMarkets } from './_lib/feeds';
+import { CATEGORIES, FEEDS, listMarkets } from './_lib/feeds.js';
 
 export async function GET(): Promise<Response> {
   const body: FeedsResponse = {
