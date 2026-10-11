@@ -32,7 +32,13 @@
     "open": "Abrir configurações",
     "close": "Fechar",
     "market": "País e idioma",
+    "columns": "Colunas da web",
     "outlets": "Fontes"
+  },
+  "columns": {
+    "journalism": "Jornalismo",
+    "sports": "Esporte",
+    "entertainment": "Entretenimento"
   },
   "time": { "now": "agora" }
 }
