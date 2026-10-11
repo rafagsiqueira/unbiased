@@ -1,7 +1,7 @@
 import type { Article, BiasScore, Feed } from '../../shared/types';
 import { FEEDS } from './feeds.js';
 import { scoreArticle } from './jev.js';
-import { fetchFeed } from './rss.js';
+import { fetchArticleSummary, fetchFeed } from './rss.js';
 import type { ArticleStore } from './store';
 
 export interface IngestDeps {
@@ -62,8 +62,15 @@ export async function ingest(deps: IngestDeps): Promise<IngestResult> {
     }
   });
 
+  const articlesWithText = await Promise.all(
+    articles.map(async (article) => ({
+      ...article,
+      summary: await fetchArticleSummary(article.link, article.summary),
+    })),
+  );
+
   const retention = new Date(now.getTime() - (deps.retentionDays ?? 30) * 86400_000);
-  const fresh = articles.filter((a) => new Date(a.publishedAt) >= retention);
+  const fresh = articlesWithText.filter((a) => new Date(a.publishedAt) >= retention);
   const inserted = await store.insertNew(fresh);
 
   let scored = 0;
