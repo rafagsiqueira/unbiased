@@ -10,7 +10,7 @@ import type { CategoryId, FeedsResponse, StoredArticle } from '../../shared/type
 import ArticleCard from '../components/ArticleCard';
 import SettingsModal from '../components/SettingsModal';
 import { fetchArticles, fetchFeeds } from '../lib/api';
-import { loadPrefs, savePrefs, type Prefs } from '../lib/prefs';
+import { DEFAULT_COLUMNS, NEWS_COLUMN_GROUPS, loadPrefs, savePrefs, type Prefs } from '../lib/prefs';
 
 export default function Timeline() {
   const { t } = useTranslation();
@@ -86,6 +86,17 @@ export default function Timeline() {
   };
 
   const categories = catalog?.categories.filter((c) => catalog.feeds.some((f) => f.category === c && f.country === prefs.country)) ?? [];
+  const columns = useMemo(() => {
+    const enabled = prefs.columns.length ? prefs.columns : DEFAULT_COLUMNS;
+    return enabled
+      .filter((column) => Object.prototype.hasOwnProperty.call(NEWS_COLUMN_GROUPS, column))
+      .map((column) => ({
+        id: column,
+        title: t(`columns.${column}`),
+        articles: articles.filter((article) => NEWS_COLUMN_GROUPS[column].includes(article.category)),
+      }))
+      .filter(({ articles }) => articles.length > 0);
+  }, [articles, prefs.columns, t]);
 
   return (
     <IonPage>
@@ -133,7 +144,14 @@ export default function Timeline() {
         ) : articles.length === 0 ? (
           <p style={{ textAlign: 'center', padding: 32 }}>{t('timeline.empty')}</p>
         ) : (
-          articles.map((a) => <ArticleCard key={a.id} article={a} />)
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 16, padding: 16 }}>
+            {columns.length > 0 ? columns.map(({ id, title, articles: columnArticles }) => (
+              <div key={id} style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
+                <h2 style={{ margin: 0, fontSize: '0.95rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: '#666' }}>{title}</h2>
+                {columnArticles.map((a) => <ArticleCard key={a.id} article={a} />)}
+              </div>
+            )) : <p style={{ textAlign: 'center', width: '100%', padding: 32 }}>{t('timeline.empty')}</p>}
+          </div>
         )}
 
         <IonInfiniteScroll disabled={!cursor} onIonInfinite={async (e) => { await loadMore(); void e.target.complete(); }}>
